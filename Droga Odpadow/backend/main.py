@@ -1,8 +1,40 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from database import session
 from pydantic import BaseModel
+from sqlmodel import SQLModel
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+from auth import current_user
+
+from user import user_router
+from role import role_router
+from login import login_router
+
+from user.user import User, UserPublic, UserWithRolePublic
+from role.role import RolePublic, Role, RoleWithUsersPublic
+
+Role.model_rebuild()
+RolePublic.model_rebuild()
+RoleWithUsersPublic.model_rebuild()
+UserPublic.model_rebuild()
+UserWithRolePublic.model_rebuild()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    session.create_db_and_tables()
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
+
+app.include_router(user_router.router)
+app.include_router(role_router.router)
+app.include_router(login_router.router)
+
+# @app.on_event("startup")
+# async def on_startup():
+#     session.create_db_and_tables()
+
 
 class User(BaseModel):
     wiek: int
@@ -16,24 +48,13 @@ def root():
 def test():
     return [{"msg": "asd"}, {"msg": "123"}]
 
+@app.get("/me")
+def get_me(curr_user: User = Depends(current_user.get_current_user)):
+    return curr_user
+
 @app.post("/test")
 def dodaj(b: User):
     return [b, {"Jaka metoda": "Post"}]
 
-@app.get("/user/{id}")
-def get_user(id: int):
-    u = User(wiek=12, nazwa="Ktos")
-    u2 = User(wiek=22, nazwa="Ktos inny")
-    if id == 2:
-         raise HTTPException(status_code=404, detail="User not found")
-    return [u, u2]
 
-@app.post("/user", status_code=201)
-def add_user(b: User):
-    if b.nazwa == "asd":
-        raise HTTPException(status_code=404, detail="Jakis błąd")
-    return [b, {"message": "Błąd"}]
 
-@app.on_event("startup")
-def on_startup():
-    session.create_db_and_tables()
