@@ -1,11 +1,14 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from database import session
 from pydantic import BaseModel
 from sqlmodel import SQLModel
 from contextlib import asynccontextmanager
 
+from auth import current_user
+
 from user import user_router
 from role import role_router
+from login import login_router
 
 from user.user import User, UserPublic, UserWithRolePublic
 from role.role import RolePublic, Role, RoleWithUsersPublic
@@ -26,6 +29,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(user_router.router)
 app.include_router(role_router.router)
+app.include_router(login_router.router)
 
 # @app.on_event("startup")
 # async def on_startup():
@@ -43,6 +47,10 @@ def root():
 @app.get("/test")
 def test():
     return [{"msg": "asd"}, {"msg": "123"}]
+
+@app.get("/me")
+def get_me(curr_user: User = Depends(current_user.get_current_user)):
+    return curr_user
 
 @app.post("/test")
 def dodaj(b: User):

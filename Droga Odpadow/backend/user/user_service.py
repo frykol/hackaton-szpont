@@ -3,7 +3,7 @@ from sqlmodel import select
 from database import session
 from user import user
 from role import role_service
-from hashlib import sha256
+from utils import hash
 
 def get_users(session: session.SessionDep) -> list[user.User]:
     users = session.exec(select(user.User)).all()
@@ -16,7 +16,7 @@ def get_user(user_login: str, session: session.SessionDep) -> user.User:
     return user_get
 
 def create_user(user_create: user.UserPost, session: session.SessionDep) -> user.User:
-    user_create.password = sha256(user_create.password.encode()).hexdigest()
+    user_create.password = hash.hash_password(user_create.password)
     db_user = user.User.model_validate(user_create)
     session.add(db_user)
     session.commit()
