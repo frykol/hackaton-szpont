@@ -8,15 +8,13 @@ from user import user_service
 from utils import hash
 from auth import auth
 
-def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(session.get_session)) -> Token:
+def login(data: LoginRequest = Depends(), session: Session = Depends(session.get_session)) -> Token:
     
-    login = form_data.username
-    password = form_data.password
 
 
-    user_get = user_service.get_user(login, session)
+    user_get = user_service.get_user(data.login, session)
 
-    if not hash.verify_password(password, user_get.password):
+    if not hash.verify_password(data.password, user_get.password):
         raise HTTPException(status_code=401, detail="Invalid Credentials")
 
     access_token = auth.create_access_token({"sub": str(user_get.id)})
