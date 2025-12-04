@@ -8,11 +8,9 @@ export const actions: Actions = {
     const formData = await request.formData();
     const email = formData.get('email');
     const password = formData.get('password');
-
-    // Weryfikacja danych logowania (przykład)
     if (email === 'test@example.com' && password === '123') {
-      throw redirect(303, '/'); // Przekierowanie po udanym logowaniu
-    }
+      throw redirect(303, '/'); 
+        }
 
     return { success: false, error: 'Invalid credentials' };
   }
