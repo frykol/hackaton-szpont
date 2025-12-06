@@ -8,7 +8,4 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
-<nav>
-	<h1 class="text-3xl">Siema</h1>
-</nav>
 {@render children()}
